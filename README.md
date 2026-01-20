@@ -1,1 +1,1 @@
-#Text editor(TxT) written in C++.
+## Text editor(TxT) written in C++.
