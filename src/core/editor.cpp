@@ -1,11 +1,10 @@
 #include "./editor.hpp"
 #include "../terminal/terminal.hpp"
 #include "../buffer/buffer.hpp"
-
-Terminal terminal;
+#include "../render/render_.hpp"
 
 void Editor_boot(){
-	EditorState state;
+	EditorState state{};
 
 	state.row =
 		g_Terminal_Context.csbi.srWindow.Bottom - 
@@ -18,10 +17,18 @@ void Editor_boot(){
 	state.cursor_line = 0, state.cursor_col = 0;
 
 	terminal.Clear_Screen(
-			g_Terminal_Context.hStdOut,
-			&g_Terminal_Context.csbi,
-			state.row, state.col	
+		g_Terminal_Context.hStdOut,
+		&g_Terminal_Context.csbi,
+		state.row, state.col	
 	);
+
+	render_layout.render_(
+		g_Terminal_Context.hStdOut,
+		g_Buffer.get_buffer(), state.row, state.col,
+		state.cursor_line, state.cursor_col,
+		state.originalColor
+	);
+
 	while(true){
 		ReadConsoleInput(
 				g_Terminal_Context.hIn,

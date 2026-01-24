@@ -8,8 +8,11 @@ class Buffer{
 	public:
 		Buffer();
 		void create_buffer();
+		std::vector<std::string>& get_buffer();
 	private:
 		std::vector<std::string> buffer;
 };
+
+extern Buffer g_Buffer;
 
 #endif // BUFFER_H

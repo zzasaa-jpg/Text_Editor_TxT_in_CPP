@@ -25,4 +25,6 @@ class Terminal{
 		);
 };
 
+extern Terminal terminal;
+
 #endif // TERMINAL_H
