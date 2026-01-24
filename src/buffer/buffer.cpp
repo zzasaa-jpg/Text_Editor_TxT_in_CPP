@@ -5,7 +5,7 @@
 Buffer g_Buffer;
 
 Buffer::Buffer(){
-	buffer.push_back(" ");       
+	buffer.push_back("this text editor");
 }
 
 void Buffer::create_buffer(){

@@ -29,6 +29,8 @@ void Editor_boot(){
 		state.originalColor
 	);
 
+	terminal.move_cursor(g_Terminal_Context.hStdOut, 0, 2);
+
 	while(true){
 		ReadConsoleInput(
 				g_Terminal_Context.hIn,
