@@ -10,11 +10,17 @@ class Render_{
 		Render_();
 		void render_(
 			HANDLE hStdOut,
-			std::vector<std::string> buffer,
+			std::vector<std::string>& buffer,
 			int row, int col,
 			int cursor_line,
 			int cursor_col,
-			WORD originalColor	
+			WORD originalColor
+		);
+		void ReDraw(
+			int& row, int& col,
+			int& cursor_line, int& cursor_col,
+			int& scroll_offset, int& h_scroll,
+			WORD originalColor
 		);
 };
 

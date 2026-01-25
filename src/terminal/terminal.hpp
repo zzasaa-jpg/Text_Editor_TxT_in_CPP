@@ -15,7 +15,7 @@ extern TerminalContext g_Terminal_Context;
 
 class Terminal{
 	public:
-		Tetminal();
+		Terminal();
 		void Terminal_init();
 		void move_cursor(HANDLE hStdOut, int row, int col);
 		void Clear_Screen(

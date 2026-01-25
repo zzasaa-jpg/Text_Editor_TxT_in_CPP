@@ -1,4 +1,4 @@
-#include "terminal.hpp"
+#include "./terminal.hpp"
 #include "../core/editor.hpp"
 
 #include <windows.h>
@@ -7,6 +7,8 @@ using namespace std;
 
 Terminal terminal;
 TerminalContext g_Terminal_Context;
+
+Terminal::Terminal() {}
 
 void Terminal::Terminal_init(){
 	g_Terminal_Context.hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);

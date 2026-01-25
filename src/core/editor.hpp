@@ -9,6 +9,10 @@ struct EditorState{
 	int cursor_line;
 	int cursor_col;
 	WORD originalColor;
+	int scroll_offset;
+	int h_scroll;
+	int preferred_col;
+	bool redraw;
 };
 
 class Editor{

@@ -47,9 +47,35 @@ void buffer_content_load(int r, std::vector<std::string>& buffer, int row){
 	}
 }
 
+void Render_::ReDraw(
+		int& row, int& col,
+		int& cursor_line, int& cursor_col,
+		int& scroll_offset, int& h_scroll,
+		WORD originalColor
+){
+	terminal.Clear_Screen(
+		g_Terminal_Context.hStdOut,
+		&g_Terminal_Context.csbi,
+		row, col
+	);
+	
+	render_layout.render_(
+		g_Terminal_Context.hStdOut,
+		g_Buffer.get_buffer(),
+		row, col, cursor_line,
+		cursor_col, originalColor
+	);
+	int screen_row = cursor_line - scroll_offset;
+	int screen_col = cursor_col - h_scroll + 2;
+	terminal.move_cursor(
+		g_Terminal_Context.hStdOut, 
+		screen_row, screen_col
+	);
+} 
+
 void Render_::render_(
 		HANDLE hStdOut,
-		std::vector<std::string> buffer,
+		std::vector<std::string>& buffer,
 		int row, int col,
 		int cursor_line,
 		int cursor_col,
