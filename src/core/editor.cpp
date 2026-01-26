@@ -5,9 +5,9 @@
 #include "../scroll/scroll.hpp"
 #include "../input/input_Key_.hpp"
 
-void Editor_boot(){
-	EditorState state{};
+EditorState state{};
 
+void Editor_boot(){
 	state.row =
 		g_Terminal_Context.csbi.srWindow.Bottom - 
 		g_Terminal_Context.csbi.srWindow.Top + 1;
@@ -30,18 +30,30 @@ void Editor_boot(){
 		g_Terminal_Context.hStdOut,
 		g_Buffer.get_buffer(), state.row, state.col,
 		state.cursor_line, state.cursor_col,
+		state.scroll_offset, state.h_scroll,
 		state.originalColor
 	);
 
 	terminal.move_cursor(g_Terminal_Context.hStdOut, 0, 2);
 
-	while(true){
+	state.editor_core_running = true;
+	while(state.editor_core_running){
 		ReadConsoleInput(
 			g_Terminal_Context.hIn,
 			&g_Terminal_Context.input,
 			1, &g_Terminal_Context.read
 		);
 		
+		// --------------------- Resize Window ---------------------
+		input.ReSize_Window(
+			g_Terminal_Context.hStdOut,
+			&g_Terminal_Context.csbi,
+			state.row, state.col,
+			state.cursor_line, state.cursor_col,
+			g_Buffer.get_buffer()
+		);
+		// ---------------------------------------------------------
+
 		// ----------------------- Key input -----------------------
 		input.range_of_input_functions(
 			state.cursor_line, state.cursor_col,
@@ -65,7 +77,7 @@ void Editor_boot(){
 		);
 		// ---------------------------------------------------------
 
-		if(!state.redraw){
+		if(state.redraw){
 			render_layout.ReDraw(
 				state.row, state.col,
 				state.cursor_line, state.cursor_col,

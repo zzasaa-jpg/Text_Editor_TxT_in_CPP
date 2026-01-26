@@ -35,7 +35,6 @@ void Terminal::Clear_Screen(
 		CONSOLE_SCREEN_BUFFER_INFO* csbi,
 		int rows, int cols
 ){
-	EditorState state{};
 	DWORD written, cells = 
 		g_Terminal_Context.csbi.dwSize.X *
 		g_Terminal_Context.csbi.dwSize.Y;

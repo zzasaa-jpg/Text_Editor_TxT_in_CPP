@@ -5,11 +5,11 @@
 
 #include <windows.h>
 #include <algorithm>
+#include <vector>
+#include <string>
 
 Input input;
 Input::Input(){};
-
-EditorState state{};
 
 // Enter Key
 void Input::Enter_Key(int& cursor_line, int& cursor_col, int& preferred_col){
@@ -37,7 +37,7 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 		g_Buffer.get_buffer()[cursor_line - 1] += g_Buffer.get_buffer()[cursor_line];
 		g_Buffer.get_buffer().erase(
 			g_Buffer.get_buffer().begin() +
-			cursor_line		
+			cursor_line
 		);
 		cursor_line--;
 		cursor_col = prev_len;
@@ -48,7 +48,20 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 
 //Escape Key
 void Input::Escape(){
-	//break;
+	state.editor_core_running = false;
+}
+
+// Resize Window
+void Input::ReSize_Window(
+		HANDLE hStdOut, CONSOLE_SCREEN_BUFFER_INFO* csbi,
+			int& row, int& col, int& cursor_line, int& cursor_col,
+			std::vector<std::string>& buffer
+){
+	GetConsoleScreenBufferInfo(hStdOut, csbi);
+	row = csbi->srWindow.Bottom - csbi->srWindow.Top + 1;
+	col = csbi->srWindow.Right - csbi->srWindow.Left + 1;
+	cursor_col = std::min(cursor_col, (int)buffer[cursor_line].size());
+	state.redraw = true;
 }
 
 //Arrow_Up

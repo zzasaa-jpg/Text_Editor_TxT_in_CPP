@@ -14,6 +14,8 @@ class Render_{
 			int row, int col,
 			int cursor_line,
 			int cursor_col,
+			int scroll_offset,
+			int h_scroll,
 			WORD originalColor
 		);
 		void ReDraw(

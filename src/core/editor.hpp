@@ -13,7 +13,10 @@ struct EditorState{
 	int h_scroll;
 	int preferred_col;
 	bool redraw;
+	bool editor_core_running;
 };
+
+extern EditorState state;
 
 class Editor{
 	public:
