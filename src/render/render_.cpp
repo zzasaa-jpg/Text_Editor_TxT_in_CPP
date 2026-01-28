@@ -78,8 +78,9 @@ void Render_::ReDraw(
 	int screen_col = cursor_col - h_scroll + 2;
 	terminal.move_cursor(
 		g_Terminal_Context.hStdOut, 
-			screen_row, screen_col
+		screen_row, screen_col
 	);
+	state.redraw = false;
 } 
 
 void Render_::render_(

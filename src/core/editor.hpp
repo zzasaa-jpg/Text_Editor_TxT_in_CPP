@@ -21,8 +21,6 @@ extern EditorState state;
 class Editor{
 	public:
 		void Editor_run();
-	private:
-		EditorState state;		
 };
 
 #endif // EDITOR_H

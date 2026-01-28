@@ -1,3 +1,10 @@
+/* 
+ * This old_line & old_col capture for 'need_redraw' function.
+ * need_redraw functions checking is cursor is moved or buffer content changed.
+ * old_line & old_col values according 'state.redraw' execute. This code will
+ * reduce screen flickering.
+*/
+
 #include "./input_Key_.hpp"
 #include "../buffer/buffer.hpp"
 #include "../terminal/terminal.hpp"
@@ -7,12 +14,21 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <cstdlib>
 
 Input input;
 Input::Input(){};
 
+inline bool need_redraw(
+    int old_line, int old_col,
+    int new_line, int new_col
+){
+    return old_line != new_line || old_col != new_col;
+}
+
 // Enter Key
-void Input::Enter_Key(int& cursor_line, int& cursor_col, int& preferred_col){
+void Input::Enter_Key(int& cursor_line, int& cursor_col, int& preferred_col)
+{
 	g_Buffer.get_buffer().insert(
 		g_Buffer.get_buffer().begin() +
 		cursor_line + 1, ""
@@ -23,16 +39,20 @@ void Input::Enter_Key(int& cursor_line, int& cursor_col, int& preferred_col){
 }
 
 // BackSpace Key
-void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col){
+void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+
 	// case1: delete the characters inside line
-	if(cursor_col > 0){
+	if(cursor_col > 0)
+	{
 		g_Buffer.get_buffer()[cursor_line].erase(cursor_col - 1, 1);
 		cursor_col--;
 		preferred_col = cursor_col;
 		state.redraw = true;
 	}
 	// case2: merge with previous line
-	else if (cursor_line > 0){
+	else if (cursor_line > 0)
+	{
 		int prev_len = g_Buffer.get_buffer()[cursor_line  - 1].size();
 		g_Buffer.get_buffer()[cursor_line - 1] += g_Buffer.get_buffer()[cursor_line];
 		g_Buffer.get_buffer().erase(
@@ -47,8 +67,10 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 }
 
 //Escape Key
-void Input::Escape(){
+void Input::Escape()
+{
 	state.editor_core_running = false;
+	//std::system("git");
 }
 
 // Resize Window
@@ -61,49 +83,103 @@ void Input::ReSize_Window(
 	row = csbi->srWindow.Bottom - csbi->srWindow.Top + 1;
 	col = csbi->srWindow.Right - csbi->srWindow.Left + 1;
 	cursor_col = std::min(cursor_col, (int)buffer[cursor_line].size());
-	state.redraw = true;
+
+	// This check for redraw only happens when the console size actually changed.
+	static int last_row = -1, last_col = -1;
+	if(row != last_row || col != last_col)
+	{
+		state.redraw = true;
+		last_row = row;
+		last_col = col;
+		
+	} else state.redraw = false;
 }
 
 //Arrow_Up
-void Input::Arrow_Up(int& cursor_line, int& cursor_col, int& preferred_col){
-	if(cursor_line > 0){
+void Input::Arrow_Up(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+	int old_line = cursor_line,
+	    old_col = cursor_col;
+
+	if(cursor_line > 0)
+	{
 		cursor_line--;
 		int line_len = g_Buffer.get_buffer()[cursor_line].size();
 		cursor_col = std::min(preferred_col, line_len);
-		state.redraw = true;
-	}
+		state.redraw = need_redraw(
+			old_line, old_col,
+			cursor_line, cursor_col
+		);
+			
+	} else state.redraw = false;
 }
 
 //Arrow_Down
-void Input::Arrow_Down(int& cursor_line, int& cursor_col, int& preferred_col){
-	if(cursor_line + 1 < g_Buffer.get_buffer().size()){
+void Input::Arrow_Down(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+	int old_line = cursor_line,
+	    old_col = cursor_col;
+
+	if(cursor_line + 1 < g_Buffer.get_buffer().size())
+	{
 		cursor_line++;
 		int line_len = g_Buffer.get_buffer()[cursor_line].size();
 		cursor_col = std::min(preferred_col, line_len);
-		state.redraw = true;
-	}
+		state.redraw = need_redraw(
+			old_line, old_col,
+			cursor_line, cursor_col
+		);
+	} else state.redraw = false; 
 }
 
 //Arrow Left
-void Input::Arrow_Left(int& cursor_line, int& cursor_col, int& preferred_col){
-	if (cursor_col > 0) cursor_col--;
-	else if(cursor_line > 0){
+void Input::Arrow_Left(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+	int old_line = cursor_line,
+	    old_col = cursor_col;
+
+	if (cursor_col > 0)
+	{
+		cursor_col--;
+	}
+	else if(cursor_line > 0)
+	{
 		cursor_line--;
 		cursor_col = g_Buffer.get_buffer()[cursor_line].size();
+	} else
+	{
+		state.redraw = false;
+		return;
 	}
 	preferred_col = cursor_col;
-	state.redraw = true;
+	state.redraw = need_redraw(
+		old_line, old_col,
+		cursor_line, cursor_col	
+	);
 }
 
 //Arrow Right
-void Input::Arrow_Right(int& cursor_line, int& cursor_col, int& preferred_col){
+void Input::Arrow_Right(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+	int old_line = cursor_line,
+	    old_col = cursor_col;
+
 	if (cursor_col < g_Buffer.get_buffer()[cursor_line].size()) cursor_col++;
 	else if(cursor_line + 1 < g_Buffer.get_buffer().size()){
 		cursor_line++;
 		cursor_col = 0;
+	} else
+	{
+		state.redraw = false;
+		return;
 	}
+
 	preferred_col = cursor_col;
-	state.redraw = true;
+	state.redraw = need_redraw(
+		old_line, old_col,
+		cursor_line, cursor_col		
+	);
+	
 }
 
 void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& preferred_col){
@@ -126,7 +202,7 @@ void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& pre
 				Arrow_Right(cursor_line, cursor_col, preferred_col);
 				break;
 			case VK_UP:
-				Arrow_Up(cursor_line, cursor_col, preferred_col);
+				Arrow_Up(cursor_line, cursor_col, preferred_col); 
 				break;
 			case VK_DOWN:
 				Arrow_Down(cursor_line, cursor_col, preferred_col);
