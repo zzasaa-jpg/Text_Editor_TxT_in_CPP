@@ -49,8 +49,7 @@ void Editor_boot(){
 			g_Terminal_Context.hStdOut,
 			&g_Terminal_Context.csbi,
 			state.row, state.col,
-			state.cursor_line, state.cursor_col,
-			g_Buffer.get_buffer()
+			state.cursor_line, state.cursor_col
 		);
 		// ---------------------------------------------------------
 

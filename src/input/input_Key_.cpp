@@ -26,26 +26,14 @@ inline bool need_redraw(
     return old_line != new_line || old_col != new_col;
 }
 
-// Enter Key
-void Input::Enter_Key(int& cursor_line, int& cursor_col, int& preferred_col)
-{
-	g_Buffer.get_buffer().insert(
-		g_Buffer.get_buffer().begin() +
-		cursor_line + 1, ""
-	);
-	cursor_line++;
-	cursor_col = preferred_col = 0;
-	state.redraw = true;
-}
-
 // BackSpace Key
 void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 {
-
+	auto& buf = g_Buffer.get_buffer();
 	// case1: delete the characters inside line
 	if(cursor_col > 0)
 	{
-		g_Buffer.get_buffer()[cursor_line].erase(cursor_col - 1, 1);
+		buf[cursor_line].erase(cursor_col - 1, 1);
 		cursor_col--;
 		preferred_col = cursor_col;
 		state.redraw = true;
@@ -53,10 +41,10 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 	// case2: merge with previous line
 	else if (cursor_line > 0)
 	{
-		int prev_len = g_Buffer.get_buffer()[cursor_line  - 1].size();
-		g_Buffer.get_buffer()[cursor_line - 1] += g_Buffer.get_buffer()[cursor_line];
-		g_Buffer.get_buffer().erase(
-			g_Buffer.get_buffer().begin() +
+		int prev_len = buf[cursor_line  - 1].size();
+		buf[cursor_line - 1] += buf[cursor_line];
+		buf.erase(
+			buf.begin() +
 			cursor_line
 		);
 		cursor_line--;
@@ -76,13 +64,13 @@ void Input::Escape()
 // Resize Window
 void Input::ReSize_Window(
 		HANDLE hStdOut, CONSOLE_SCREEN_BUFFER_INFO* csbi,
-			int& row, int& col, int& cursor_line, int& cursor_col,
-			std::vector<std::string>& buffer
+		int& row, int& col, int& cursor_line, int& cursor_col	
 ){
+	auto& buf = g_Buffer.get_buffer();
 	GetConsoleScreenBufferInfo(hStdOut, csbi);
 	row = csbi->srWindow.Bottom - csbi->srWindow.Top + 1;
 	col = csbi->srWindow.Right - csbi->srWindow.Left + 1;
-	cursor_col = std::min(cursor_col, (int)buffer[cursor_line].size());
+	cursor_col = std::min(cursor_col, (int)buf[cursor_line].size());
 
 	// This check for redraw only happens when the console size actually changed.
 	static int last_row = -1, last_col = -1;
@@ -98,13 +86,14 @@ void Input::ReSize_Window(
 //Arrow_Up
 void Input::Arrow_Up(int& cursor_line, int& cursor_col, int& preferred_col)
 {
+	auto& buf = g_Buffer.get_buffer();
 	int old_line = cursor_line,
 	    old_col = cursor_col;
 
 	if(cursor_line > 0)
 	{
 		cursor_line--;
-		int line_len = g_Buffer.get_buffer()[cursor_line].size();
+		int line_len = buf[cursor_line].size();
 		cursor_col = std::min(preferred_col, line_len);
 		state.redraw = need_redraw(
 			old_line, old_col,
@@ -117,13 +106,14 @@ void Input::Arrow_Up(int& cursor_line, int& cursor_col, int& preferred_col)
 //Arrow_Down
 void Input::Arrow_Down(int& cursor_line, int& cursor_col, int& preferred_col)
 {
+	auto& buf = g_Buffer.get_buffer();
 	int old_line = cursor_line,
 	    old_col = cursor_col;
 
-	if(cursor_line + 1 < g_Buffer.get_buffer().size())
+	if(cursor_line + 1 < buf.size())
 	{
 		cursor_line++;
-		int line_len = g_Buffer.get_buffer()[cursor_line].size();
+		int line_len = buf[cursor_line].size();
 		cursor_col = std::min(preferred_col, line_len);
 		state.redraw = need_redraw(
 			old_line, old_col,
@@ -135,6 +125,7 @@ void Input::Arrow_Down(int& cursor_line, int& cursor_col, int& preferred_col)
 //Arrow Left
 void Input::Arrow_Left(int& cursor_line, int& cursor_col, int& preferred_col)
 {
+	auto& buf = g_Buffer.get_buffer();
 	int old_line = cursor_line,
 	    old_col = cursor_col;
 
@@ -145,7 +136,7 @@ void Input::Arrow_Left(int& cursor_line, int& cursor_col, int& preferred_col)
 	else if(cursor_line > 0)
 	{
 		cursor_line--;
-		cursor_col = g_Buffer.get_buffer()[cursor_line].size();
+		cursor_col = buf[cursor_line].size();
 	} else
 	{
 		state.redraw = false;
@@ -161,11 +152,12 @@ void Input::Arrow_Left(int& cursor_line, int& cursor_col, int& preferred_col)
 //Arrow Right
 void Input::Arrow_Right(int& cursor_line, int& cursor_col, int& preferred_col)
 {
+	auto& buf = g_Buffer.get_buffer();
 	int old_line = cursor_line,
 	    old_col = cursor_col;
 
-	if (cursor_col < g_Buffer.get_buffer()[cursor_line].size()) cursor_col++;
-	else if(cursor_line + 1 < g_Buffer.get_buffer().size()){
+	if (cursor_col < buf[cursor_line].size()) cursor_col++;
+	else if(cursor_line + 1 < buf.size()){
 		cursor_line++;
 		cursor_col = 0;
 	} else
@@ -182,32 +174,73 @@ void Input::Arrow_Right(int& cursor_line, int& cursor_col, int& preferred_col)
 	
 }
 
+// Insert new line
+void Input::Insert_New_Line(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+	auto& buf = g_Buffer.get_buffer();
+	std::string right = buf[cursor_line].substr(cursor_col);
+	buf[cursor_line].erase(cursor_col);
+
+	buf.insert(buf.begin() + cursor_line + 1, right);
+
+	cursor_line++;
+	cursor_col = preferred_col = 0;
+	state.redraw = true;
+}
+
+// Insert characters
+void Input::Insert_Characters(char ch, int& cursor_line, int& cursor_col)
+{
+	auto& buf = g_Buffer.get_buffer();
+	buf[cursor_line].insert(cursor_col, 1, ch);
+	cursor_col++;
+	state.redraw = true;
+}
+
+// Tab
+void Input::Insert_Tab(int& cursor_line, int& cursor_col)
+{
+	auto& buf = g_Buffer.get_buffer();
+	for (int i = 0; i < 4; i++)
+	{
+		buf[cursor_line].insert(cursor_col++, 1, ' ');
+	}
+	state.redraw = true;
+}
+
 void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& preferred_col){
+	auto& buf = g_Buffer.get_buffer();
 	if(g_Terminal_Context.input.EventType == KEY_EVENT &&
 		g_Terminal_Context.input.Event.KeyEvent.bKeyDown){
 		
-		WORD key = g_Terminal_Context.input.Event.KeyEvent.wVirtualKeyCode;
+		KEY_EVENT_RECORD& key = g_Terminal_Context.input.Event.KeyEvent;
 
-		switch(key){
-			case VK_RETURN:
-				Enter_Key(cursor_line, cursor_col, preferred_col);
-				break;
-			case VK_BACK:
-				BackSpace_Key(cursor_line, cursor_col, preferred_col);
-				break;
+		WORD vk = key.wVirtualKeyCode;
+		char ch = key.uChar.AsciiChar;
+
+		// Navigation and control
+		switch(vk){
 			case VK_LEFT:
 				Arrow_Left(cursor_line, cursor_col, preferred_col);
-				break;
+				return;
 			case VK_RIGHT:
 				Arrow_Right(cursor_line, cursor_col, preferred_col);
-				break;
+				return;
 			case VK_UP:
 				Arrow_Up(cursor_line, cursor_col, preferred_col); 
-				break;
+				return;
 			case VK_DOWN:
 				Arrow_Down(cursor_line, cursor_col, preferred_col);
-				break;
-			case VK_ESCAPE: Escape(); break;
+				return;
+			case VK_ESCAPE: Escape(); return;
 		}
+
+		// Special Keys
+		if (vk == VK_RETURN) Insert_New_Line(cursor_line, cursor_col, preferred_col);
+		else if(vk == VK_BACK) BackSpace_Key(cursor_line, cursor_col, preferred_col);
+		else if(vk == VK_TAB) Insert_Tab(cursor_line, cursor_col);
+
+		// Printable chars
+		else if(ch >= 32 && ch <= 126) Insert_Characters(ch, cursor_line, cursor_col);
 	}
 }
