@@ -198,13 +198,14 @@ void Input::Insert_Characters(char ch, int& cursor_line, int& cursor_col)
 }
 
 // Tab
-void Input::Insert_Tab(int& cursor_line, int& cursor_col)
+void Input::Insert_Tab(int& cursor_line, int& cursor_col, int& preferred_col)
 {
 	auto& buf = g_Buffer.get_buffer();
 	for (int i = 0; i < 4; i++)
 	{
 		buf[cursor_line].insert(cursor_col++, 1, ' ');
 	}
+	preferred_col = cursor_col;
 	state.redraw = true;
 }
 
@@ -238,7 +239,7 @@ void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& pre
 		// Special Keys
 		if (vk == VK_RETURN) Insert_New_Line(cursor_line, cursor_col, preferred_col);
 		else if(vk == VK_BACK) BackSpace_Key(cursor_line, cursor_col, preferred_col);
-		else if(vk == VK_TAB) Insert_Tab(cursor_line, cursor_col);
+		else if(vk == VK_TAB) Insert_Tab(cursor_line, cursor_col, preferred_col);
 
 		// Printable chars
 		else if(ch >= 32 && ch <= 126) Insert_Characters(ch, cursor_line, cursor_col);
