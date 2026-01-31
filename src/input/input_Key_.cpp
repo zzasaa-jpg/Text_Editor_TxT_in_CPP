@@ -9,12 +9,14 @@
 #include "../buffer/buffer.hpp"
 #include "../terminal/terminal.hpp"
 #include "../core/editor.hpp"
+#include "../file_controller/file_controller.hpp"
 
 #include <windows.h>
 #include <algorithm>
 #include <vector>
 #include <string>
 #include <cstdlib>
+#include <iostream>
 
 Input input;
 Input::Input(){};
@@ -57,7 +59,12 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 //Escape Key
 void Input::Escape()
 {
-	state.editor_core_running = false;
+	contrl_state.controller_ = !contrl_state.controller_;
+	file_controller_.Clear_Buffer();
+	if(contrl_state.controller_){
+		file_controller_.Render_Controller();
+	}
+	state.redraw = !contrl_state.controller_;
 	//std::system("git");
 }
 
@@ -209,39 +216,81 @@ void Input::Insert_Tab(int& cursor_line, int& cursor_col, int& preferred_col)
 	state.redraw = true;
 }
 
-void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& preferred_col){
-	auto& buf = g_Buffer.get_buffer();
+void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+	auto& buf = g_Buffer.get_buffer();// Editor buffer
+	auto& controller_buf = contrl_state.controller_buffer;// Controller buffer
+
 	if(g_Terminal_Context.input.EventType == KEY_EVENT &&
-		g_Terminal_Context.input.Event.KeyEvent.bKeyDown){
+		g_Terminal_Context.input.Event.KeyEvent.bKeyDown)
+	{
 		
 		KEY_EVENT_RECORD& key = g_Terminal_Context.input.Event.KeyEvent;
 
 		WORD vk = key.wVirtualKeyCode;
 		char ch = key.uChar.AsciiChar;
 
-		// Navigation and control
-		switch(vk){
-			case VK_LEFT:
-				Arrow_Left(cursor_line, cursor_col, preferred_col);
-				return;
-			case VK_RIGHT:
-				Arrow_Right(cursor_line, cursor_col, preferred_col);
-				return;
-			case VK_UP:
-				Arrow_Up(cursor_line, cursor_col, preferred_col); 
-				return;
-			case VK_DOWN:
-				Arrow_Down(cursor_line, cursor_col, preferred_col);
-				return;
-			case VK_ESCAPE: Escape(); return;
+		if(vk == VK_ESCAPE)
+		{
+			Escape();
+			return;
 		}
 
-		// Special Keys
-		if (vk == VK_RETURN) Insert_New_Line(cursor_line, cursor_col, preferred_col);
-		else if(vk == VK_BACK) BackSpace_Key(cursor_line, cursor_col, preferred_col);
-		else if(vk == VK_TAB) Insert_Tab(cursor_line, cursor_col, preferred_col);
+		if(contrl_state.controller_== false)
+		{
+			// Navigation and control
+			switch(vk){
+				case VK_LEFT:
+					Arrow_Left(cursor_line, cursor_col, preferred_col);
+					return;
+				case VK_RIGHT:
+					Arrow_Right(cursor_line, cursor_col, preferred_col);
+					return;
+				case VK_UP:
+					Arrow_Up(cursor_line, cursor_col, preferred_col); 
+					return;
+				case VK_DOWN:
+					Arrow_Down(cursor_line, cursor_col, preferred_col);
+					return;
+			}
+			// Special Keys
+			if (vk == VK_RETURN) Insert_New_Line(cursor_line, cursor_col, preferred_col);
+			else if(vk == VK_BACK) BackSpace_Key(cursor_line, cursor_col, preferred_col);
+			else if(vk == VK_TAB) Insert_Tab(cursor_line, cursor_col, preferred_col);
 
-		// Printable chars
-		else if(ch >= 32 && ch <= 126) Insert_Characters(ch, cursor_line, cursor_col);
+			// Printable chars
+			else if(ch >= 32 && ch <= 126) Insert_Characters(ch, cursor_line, cursor_col);
+		} 
+		else {
+			// AUTO clear error
+			if (contrl_state.Error)
+			{
+				file_controller_.Clear_Buffer();
+				contrl_state.Error = false;
+				file_controller_.Render_Controller();
+			}
+
+			// Handle backspace
+			if(vk == VK_BACK && !contrl_state.controller_buffer.empty())
+			{
+				contrl_state.controller_buffer.pop_back();
+				file_controller_.Render_Controller();
+			}
+			
+			// Handle Printable chars
+			if(ch >= 32 && ch <= 126)
+			{
+				contrl_state.controller_buffer.push_back(ch);
+				file_controller_.Render_Controller();
+			}
+
+			// Execute command on Enter
+			if(vk == VK_RETURN && contrl_state.controller_)
+			{
+				file_controller_.Execute_Command();
+				return;
+			}
+			return;	
+		}
 	}
 }

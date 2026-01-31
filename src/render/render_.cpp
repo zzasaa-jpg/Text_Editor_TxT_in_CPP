@@ -2,6 +2,7 @@
 #include "../terminal/terminal.hpp"
 #include "../core/editor.hpp"
 #include "../buffer/buffer.hpp"
+#include "../file_controller/file_controller.hpp"
 
 #include <windows.h>
 #include <vector>
@@ -19,11 +20,12 @@ void status_bar(
 		std::vector<std::string>& buffer,
 		WORD originalColor
 ){
-	terminal.move_cursor(g_Terminal_Context.hStdOut, row - 1, 0);
+	terminal.move_cursor(g_Terminal_Context.hStdOut, row - 2, 0);
+
 	SetConsoleTextAttribute(g_Terminal_Context.hStdOut, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 
 	std::string status = 
-		"LINE: " + std::to_string(cursor_line + 1) +
+		"| LINE: " + std::to_string(cursor_line + 1) +
 		" | COL: " + std::to_string(cursor_col) +
 		" | V-OFF: " + std::to_string(scroll_offset) +
 		" | H-OFF: " + std::to_string(h_scroll) +
@@ -76,10 +78,17 @@ void Render_::ReDraw(
 	);
 	int screen_row = cursor_line - scroll_offset;
 	int screen_col = cursor_col - h_scroll + 2;
-	terminal.move_cursor(
-		g_Terminal_Context.hStdOut, 
-		screen_row, screen_col
-	);
+	if(!contrl_state.controller_){
+		terminal.move_cursor(
+			g_Terminal_Context.hStdOut, 
+			screen_row, screen_col
+		);
+	} else{
+		terminal.move_cursor(
+			g_Terminal_Context.hStdOut, 
+			state.row - 1, 1 + contrl_state.controller_buffer.size()
+		);	
+	}
 	state.redraw = false;
 } 
 
@@ -93,7 +102,7 @@ void Render_::render_(
 		int h_scroll,
 		WORD originalColor
 ){
-	int editor_rows = row - 1,
+	int editor_rows = row - 2,
 	r_ = 0, text_col = 2, max_width = col - text_col;
 
 	for (int r = r_; r < editor_rows; r++){
@@ -111,10 +120,25 @@ void Render_::render_(
 			max_width, text_col
 		);
 	}
+
 	status_bar(
 		row, col, cursor_line,
 		cursor_col, scroll_offset,
 		h_scroll, buffer,
 		originalColor
 	);
+	if(contrl_state.controller_)
+	{
+		terminal.move_cursor(
+				g_Terminal_Context.hStdOut,
+				row - 1, 0
+		);
+		std::cout << ":" << contrl_state.controller_buffer;
+
+		terminal.move_cursor(
+				g_Terminal_Context.hStdOut,
+				row - 1, 1 + contrl_state.controller_buffer.size()
+		);
+		std::cout.flush();	
+	}
 }

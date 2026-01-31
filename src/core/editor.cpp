@@ -4,6 +4,7 @@
 #include "../render/render_.hpp"
 #include "../scroll/scroll.hpp"
 #include "../input/input_Key_.hpp"
+#include "../file_controller/file_controller.hpp"
 
 EditorState state{};
 
@@ -76,14 +77,21 @@ void Editor_boot(){
 		);
 		// ---------------------------------------------------------
 
-		if(state.redraw){
-			render_layout.ReDraw(
-				state.row, state.col,
-				state.cursor_line, state.cursor_col,
-				state.scroll_offset, state.h_scroll,
-				state.originalColor
-			);
-		}
+if(state.redraw){
+    if(!contrl_state.controller_){
+        // Only redraw editor if NOT in controller mode
+        render_layout.ReDraw(
+            state.row, state.col,
+            state.cursor_line, state.cursor_col,
+            state.scroll_offset, state.h_scroll,
+            state.originalColor
+        );
+    } else {
+        // If controller mode is active, redraw only the controller row
+        file_controller_.Render_Controller();
+    }
+}
+		
 	}
 }
 
