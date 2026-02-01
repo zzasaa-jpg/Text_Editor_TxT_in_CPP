@@ -29,7 +29,8 @@ void status_bar(
 		" | COL: " + std::to_string(cursor_col) +
 		" | V-OFF: " + std::to_string(scroll_offset) +
 		" | H-OFF: " + std::to_string(h_scroll) +
-	       	" | TOTAL: " + std::to_string(buffer.size());	
+		" | TOTAL: " + std::to_string(buffer.size()) +
+		(contrl_state.modified ? "*" : "");
 
 	int padding = col - status.length();
 
