@@ -20,7 +20,11 @@ extern EditorState state;
 
 class Editor{
 	public:
+		Editor();
 		void Editor_run();
+		void Reset_view_after_load();
 };
+
+extern Editor editor;
 
 #endif // EDITOR_H

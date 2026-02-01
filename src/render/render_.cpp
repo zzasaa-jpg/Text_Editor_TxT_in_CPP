@@ -25,11 +25,12 @@ void status_bar(
 	SetConsoleTextAttribute(g_Terminal_Context.hStdOut, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 
 	std::string status = 
-		"| LINE: " + std::to_string(cursor_line + 1) +
+		"LINE: " + std::to_string(cursor_line + 1) +
 		" | COL: " + std::to_string(cursor_col) +
 		" | V-OFF: " + std::to_string(scroll_offset) +
 		" | H-OFF: " + std::to_string(h_scroll) +
 		" | TOTAL: " + std::to_string(buffer.size()) +
+		" | " + (contrl_state.file_path.empty() ? "[No Name]" : contrl_state.file_path) +
 		(contrl_state.modified ? "*" : "");
 
 	int padding = col - status.length();

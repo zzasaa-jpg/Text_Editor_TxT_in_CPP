@@ -5,9 +5,11 @@
 #include "../scroll/scroll.hpp"
 #include "../input/input_Key_.hpp"
 #include "../file_controller/file_controller.hpp"
+#include "../file_engine/file_engine.hpp"
 
 EditorState state{};
-
+Editor editor;
+Editor::Editor() {};
 void Editor_boot(){
 	state.row =
 		g_Terminal_Context.csbi.srWindow.Bottom - 
@@ -21,6 +23,19 @@ void Editor_boot(){
 	state.scroll_offset = 0, state.h_scroll = 0,
 	state.preferred_col = 0, state.redraw = false;
 
+	// Clear buffer before loading
+	//g_Buffer.get_buffer().clear();
+
+	// Load the file if provided
+	if (!contrl_state.file_path.empty())
+	{
+		if(file_engine_.Load(contrl_state.file_path))
+		{
+			editor.Reset_view_after_load();
+		}
+		file_controller_.Clear_Buffer();
+		contrl_state.modified = false;
+	}
 	terminal.Clear_Screen(
 		g_Terminal_Context.hStdOut,
 		&g_Terminal_Context.csbi,
@@ -96,8 +111,16 @@ void Editor_boot(){
 	}
 }
 
-void Editor::Editor_run(){
+void Editor::Editor_run()
+{
 	Buffer buffer;
 	terminal.Terminal_init();
 	Editor_boot();
+}
+
+void Editor::Reset_view_after_load()
+{
+	state.cursor_line = 0, state.cursor_col = 0,
+	state.scroll_offset = 0, state.h_scroll = 0,
+	state.preferred_col = 0, state.redraw = true;
 }

@@ -2,6 +2,7 @@
 #define FILE_CONTROLLER_H
 
 #include <string>
+#include <windows.h>
 
 struct File_Controller_state {
 	bool modified = false;
@@ -25,6 +26,7 @@ class File_Controller{
 		// controller_buffer clear
 		void Clear_Buffer();
 
+		void range_of_mes(std::string mes, WORD color_set);
 		void Execute_Command(); 
 		void Parse_Command();
 
