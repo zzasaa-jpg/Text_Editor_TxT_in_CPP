@@ -38,6 +38,7 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 		buf[cursor_line].erase(cursor_col - 1, 1);
 		cursor_col--;
 		preferred_col = cursor_col;
+		contrl_state.modified = true;
 		state.redraw = true;
 	}
 	// case2: merge with previous line
@@ -52,6 +53,7 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 		cursor_line--;
 		cursor_col = prev_len;
 		preferred_col = cursor_col;
+		contrl_state.modified = true;
 		state.redraw = true;
 	}
 }
@@ -192,6 +194,7 @@ void Input::Insert_New_Line(int& cursor_line, int& cursor_col, int& preferred_co
 
 	cursor_line++;
 	cursor_col = preferred_col = 0;
+	contrl_state.modified = true;
 	state.redraw = true;
 }
 
@@ -201,6 +204,7 @@ void Input::Insert_Characters(char ch, int& cursor_line, int& cursor_col)
 	auto& buf = g_Buffer.get_buffer();
 	buf[cursor_line].insert(cursor_col, 1, ch);
 	cursor_col++;
+	contrl_state.modified = true;
 	state.redraw = true;
 }
 
@@ -213,6 +217,7 @@ void Input::Insert_Tab(int& cursor_line, int& cursor_col, int& preferred_col)
 		buf[cursor_line].insert(cursor_col++, 1, ' ');
 	}
 	preferred_col = cursor_col;
+	contrl_state.modified = true;
 	state.redraw = true;
 }
 

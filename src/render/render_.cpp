@@ -130,14 +130,14 @@ void Render_::render_(
 	if(contrl_state.controller_)
 	{
 		terminal.move_cursor(
-				g_Terminal_Context.hStdOut,
-				row - 1, 0
+			g_Terminal_Context.hStdOut,
+			row - 1, 0
 		);
 		std::cout << ":" << contrl_state.controller_buffer;
 
 		terminal.move_cursor(
-				g_Terminal_Context.hStdOut,
-				row - 1, 1 + contrl_state.controller_buffer.size()
+			g_Terminal_Context.hStdOut,
+			row - 1, 1 + contrl_state.controller_buffer.size()
 		);
 		std::cout.flush();	
 	}

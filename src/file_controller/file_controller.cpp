@@ -3,6 +3,7 @@
 #include "../core/editor.hpp"
 
 #include <iostream>
+#include <windows.h>
 
 File_Controller_state contrl_state;
 File_Controller file_controller_;
@@ -23,14 +24,12 @@ void File_Controller::Execute_Command()
 	//state.redraw = true;
 }
 
-void range_of_errors()
+void range_of_errors(std::string mes, WORD color_set)
 {
-	
-	std::string err = "Invalid Cmd";
-
-	contrl_state.controller_buffer = err;
-
+	SetConsoleTextAttribute(g_Terminal_Context.hStdOut, color_set);
+	contrl_state.controller_buffer = mes;
 	file_controller_.Render_Controller();
+	SetConsoleTextAttribute(g_Terminal_Context.hStdOut, state.originalColor);
 	contrl_state.Error = true;
 }
 
@@ -41,14 +40,24 @@ void File_Controller::Parse_Command()
 	auto& cmd = contrl_state.controller_buffer;
 
 	if(cmd == "q"){
+		if(contrl_state.modified)
+		{
+			contrl_state.Error = true;
+			range_of_errors("Unsaved changes! Use :q!", FOREGROUND_RED);
+			return;
+		}
+		Command_Quit();
+	} else if(cmd == "q!"){
+		contrl_state.modified = false;
 		contrl_state.quit = true;
 		Command_Quit();
-	} else if (cmd == "w"){
+	}
+       	else if (cmd == "w"){
 		contrl_state.modified = false;
 	}
 	else {
 		contrl_state.Error = true;
-		range_of_errors();
+		range_of_errors("Invalid Cmd", FOREGROUND_RED);
 	}
 }
 
@@ -61,19 +70,14 @@ void File_Controller::Command_Quit()
 void File_Controller::Render_Controller()
 {
     int controller_row = state.row - 1;
-
-    // Move to controller row
     terminal.move_cursor(g_Terminal_Context.hStdOut, controller_row, 0);
 
-    // Clear line
     std::string empty(state.col, ' ');
     std::cout << empty;
 
-    // Move back and print ":" + buffer
     terminal.move_cursor(g_Terminal_Context.hStdOut, controller_row, 0);
     std::cout << ":" << contrl_state.controller_buffer;
 
-    // Move cursor to end of buffer
     int cursor_col = 1 + contrl_state.controller_buffer.size();
     terminal.move_cursor(g_Terminal_Context.hStdOut, controller_row, cursor_col);
 

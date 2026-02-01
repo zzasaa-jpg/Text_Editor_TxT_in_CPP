@@ -10,14 +10,7 @@ class Buffer{
 		void create_buffer();
 		std::vector<std::string>& get_buffer();
 	private:
-		std::vector<std::string> buffer = {
-			"#include <iostream>",
-			"using namespace std;",
-			" ", "int main(){",
-			"      cout << 'Hello world;' << endl;",
-			"      return 0;", "}",
-			"Hellow this editor written cpp and development tools uses daily, in offices, the other develop mind is boom!Hellow this editor written cpp and development tools uses daily, in offices, the other develop mind is boom!"
-		};
+		std::vector<std::string> buffer = {" "};
 };
 
 extern Buffer g_Buffer;

@@ -4,13 +4,7 @@
 
 Buffer g_Buffer;
 
-Buffer::Buffer(){
-	buffer.push_back("this text editor");
-}
-
-void Buffer::create_buffer(){
-	//std::cout << "Buffer Created" << std::endl;
-}
+Buffer::Buffer(){};
 
 std::vector<std::string>& Buffer::get_buffer(){
 	return buffer;

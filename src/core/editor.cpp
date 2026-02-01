@@ -76,28 +76,28 @@ void Editor_boot(){
 			state.col		
 		);
 		// ---------------------------------------------------------
-
-if(state.redraw){
-    if(!contrl_state.controller_){
-        // Only redraw editor if NOT in controller mode
-        render_layout.ReDraw(
-            state.row, state.col,
-            state.cursor_line, state.cursor_col,
-            state.scroll_offset, state.h_scroll,
-            state.originalColor
-        );
-    } else {
-        // If controller mode is active, redraw only the controller row
-        file_controller_.Render_Controller();
-    }
-}
 		
+		if(state.redraw)
+		{
+			if(!contrl_state.controller_)
+			{
+				// Only redraw editor if NOT in controller mode
+				render_layout.ReDraw(
+					state.row, state.col,
+					state.cursor_line, state.cursor_col,
+					state.scroll_offset, state.h_scroll,
+					state.originalColor
+					);
+			} else {
+				// If controller mode is active, redraw only the controller row
+				file_controller_.Render_Controller();
+			}
+		}
 	}
 }
 
 void Editor::Editor_run(){
 	Buffer buffer;
-	buffer.create_buffer();
 	terminal.Terminal_init();
 	Editor_boot();
 }
