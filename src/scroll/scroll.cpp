@@ -6,6 +6,7 @@ const int text_col = 2; // i did n't use the 'define' for Type Safety and Debugg
 
 Scroll::Scroll() {}
 
+// Vertical Scroll ------------------------------------------------------------
 void Scroll::Vertical_Scroll(int cursor_line, int& scroll_offset, int row){
 	int visible_lines = row - 1;
 
@@ -20,7 +21,9 @@ void Scroll::Vertical_Scroll(int cursor_line, int& scroll_offset, int row){
 	// don't go above first line.
 	if (scroll_offset < 0) scroll_offset = 0;
 }
+// ----------------------------------------------------------------------------
 
+// Horizontal Scroll ----------------------------------------------------------
 void Scroll::Horizontal_Scroll(int cursor_col, int& h_scroll, int col){
 	int visible_cols = col - text_col;
 
@@ -35,3 +38,4 @@ void Scroll::Horizontal_Scroll(int cursor_col, int& h_scroll, int col){
 	// don't scroll before column 0.
 	if (h_scroll < 0) h_scroll = 0;
 }
+// ----------------------------------------------------------------------------
