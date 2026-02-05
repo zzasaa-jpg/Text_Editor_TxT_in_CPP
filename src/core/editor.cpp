@@ -52,6 +52,7 @@ void Editor_boot(){
 
 	terminal.move_cursor(g_Terminal_Context.hStdOut, 0, 2);
 
+	// Editor core loop --------------------------------------------
 	state.editor_core_running = true;
 	while(state.editor_core_running){
 		ReadConsoleInput(
@@ -91,7 +92,8 @@ void Editor_boot(){
 			state.col		
 		);
 		// ---------------------------------------------------------
-		
+
+		// ----------------- Editor redraw handling ----------------
 		if(state.redraw)
 		{
 			if(!contrl_state.controller_)
@@ -108,7 +110,9 @@ void Editor_boot(){
 				file_controller_.Render_Controller();
 			}
 		}
+		// ---------------------------------------------------------
 	}
+	// Editor core loop end ----------------------------------------
 }
 
 void Editor::Editor_run()
