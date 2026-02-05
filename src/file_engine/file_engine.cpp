@@ -7,6 +7,7 @@
 File_Engine file_engine_;
 File_Engine::File_Engine(){};
 
+// Save file function ------------------------------------------------------------
 bool File_Engine::Save(const std::string& path)
 {
 	std::ofstream out(path);
@@ -28,7 +29,9 @@ bool File_Engine::Save(const std::string& path)
 	contrl_state.modified = false;
 	return true;
 }
+// -------------------------------------------------------------------------------
 
+// Load file function ------------------------------------------------------------
 bool File_Engine::Load(const std:: string& path)
 {
 	std::ifstream file(path);
@@ -56,3 +59,4 @@ bool File_Engine::Load(const std:: string& path)
 
 	return true;
 }
+// -------------------------------------------------------------------------------
