@@ -12,6 +12,7 @@
 Render_ render_layout;
 Render_::Render_() {}
 
+// Editor status bar --------------------------------------------------------------------------------
 void status_bar(
 		int row, int col,
 		int cursor_line,
@@ -39,7 +40,9 @@ void status_bar(
 	std::cout << status;
 	SetConsoleTextAttribute(g_Terminal_Context.hStdOut, originalColor);
 }
+// ----------------------------------------------------------------------------------------------------
 
+// Buffer load to editor (Terminal screen) ------------------------------------------------------------
 void buffer_content_load(
 		int r, std::vector<std::string>& buffer,
 		int& scroll_offset, int& h_scroll, int max_width,
@@ -58,7 +61,9 @@ void buffer_content_load(
 			}
 		 }
 }
+// ----------------------------------------------------------------------------------------------------
 
+// Editor redraw function. Editor inside every new event or any new changes this function execute -----
 void Render_::ReDraw(
 		int& row, int& col,
 		int& cursor_line, int& cursor_col,
@@ -92,8 +97,10 @@ void Render_::ReDraw(
 		);	
 	}
 	state.redraw = false;
-} 
+}
+// ----------------------------------------------------------------------------------------------------
 
+// This function is ENTRY POINT of render module ------------------------------------------------------
 void Render_::render_(
 		HANDLE hStdOut,
 		std::vector<std::string>& buffer,
@@ -107,6 +114,7 @@ void Render_::render_(
 	int editor_rows = row - 2,
 	r_ = 0, text_col = 2, max_width = col - text_col;
 
+	// initialize the editor rows
 	for (int r = r_; r < editor_rows; r++){
 		terminal.move_cursor(g_Terminal_Context.hStdOut, r, 0);
 		SetConsoleTextAttribute(
@@ -116,6 +124,7 @@ void Render_::render_(
 		std::cout<< "~";
 		SetConsoleTextAttribute(g_Terminal_Context.hStdOut, originalColor);
 
+		// buffer content load to screen
 		buffer_content_load(
 			r, buffer,
 			scroll_offset, h_scroll,
@@ -123,12 +132,15 @@ void Render_::render_(
 		);
 	}
 
+	// status bar execute
 	status_bar(
 		row, col, cursor_line,
 		cursor_col, scroll_offset,
 		h_scroll, buffer,
 		originalColor
 	);
+	
+	// This is editor controller code
 	if(contrl_state.controller_)
 	{
 		terminal.move_cursor(
@@ -144,3 +156,4 @@ void Render_::render_(
 		std::cout.flush();	
 	}
 }
+// ----------------------------------------------------------------------------------------------------
