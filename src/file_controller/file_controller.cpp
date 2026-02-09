@@ -27,6 +27,7 @@ void File_Controller::range_of_mes(std::string mes, WORD color_set)
 {
 	SetConsoleTextAttribute(g_Terminal_Context.hStdOut, color_set);
 	contrl_state.controller_buffer = mes;
+	contrl_state.controller_col = 1 + contrl_state.controller_buffer.size();
 	file_controller_.Render_Controller();
 	SetConsoleTextAttribute(g_Terminal_Context.hStdOut, state.originalColor);
 	contrl_state.Error = true;
@@ -106,20 +107,28 @@ void File_Controller::Command_Quit()
 
 void File_Controller::Render_Controller()
 {
-    int controller_row = state.row - 1;
-    terminal.move_cursor(g_Terminal_Context.hStdOut, controller_row, 0);
+	contrl_state.controller_row = state.row - 1;
+	terminal.move_cursor(
+		g_Terminal_Context.hStdOut,
+		contrl_state.controller_row, 0
+	);
 
-    std::string empty(state.col, ' ');
-    std::cout << empty;
+	std::string empty(state.col, ' ');
+	std::cout << empty;
 
-    terminal.move_cursor(g_Terminal_Context.hStdOut, controller_row, 0);
-    std::cout << ":" << contrl_state.controller_buffer;
+	terminal.move_cursor(
+		g_Terminal_Context.hStdOut,
+		contrl_state.controller_row, 0
+	);
 
-    int cursor_col = 1 + contrl_state.controller_buffer.size();
-    terminal.move_cursor(g_Terminal_Context.hStdOut, controller_row, cursor_col);
+	std::cout << ":" << contrl_state.controller_buffer;
 
-    std::cout.flush();
+	terminal.move_cursor(
+		g_Terminal_Context.hStdOut,
+		contrl_state.controller_row,
+		contrl_state.controller_col
+	);
 
-    state.redraw = false;
+	std::cout.flush();
+	state.redraw = false;
 }
-

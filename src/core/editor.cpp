@@ -96,19 +96,16 @@ void Editor_boot(){
 		// ----------------- Editor redraw handling ----------------
 		if(state.redraw)
 		{
-			if(!contrl_state.controller_)
-			{
-				// Only redraw editor if NOT in controller mode
-				render_layout.ReDraw(
-					state.row, state.col,
-					state.cursor_line, state.cursor_col,
-					state.scroll_offset, state.h_scroll,
-					state.originalColor
-					);
-			} else {
-				// If controller mode is active, redraw only the controller row
-				file_controller_.Render_Controller();
-			}
+			/* If redraw is true then, 'render_layout.ReDraw()' and 
+			 * 'file_controller_.Render_Controller()' both functions execute.
+			 * uses if condition based on 'contrl_state.controller_' then UX is breaking.*/
+			file_controller_.Render_Controller();
+			render_layout.ReDraw(
+				state.row, state.col,
+				state.cursor_line, state.cursor_col,
+				state.scroll_offset, state.h_scroll,
+				state.originalColor
+			);
 		}
 		// ---------------------------------------------------------
 	}

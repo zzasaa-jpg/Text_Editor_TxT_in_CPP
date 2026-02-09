@@ -64,6 +64,7 @@ void Input::Escape()
 	contrl_state.controller_ = !contrl_state.controller_;
 	file_controller_.Clear_Buffer();
 	if(contrl_state.controller_){
+		contrl_state.controller_col = 1;
 		file_controller_.Render_Controller();
 	}
 	state.redraw = !contrl_state.controller_;
@@ -183,6 +184,32 @@ void Input::Arrow_Right(int& cursor_line, int& cursor_col, int& preferred_col)
 	
 }
 
+// Home key
+void Input::Home(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+	if (cursor_col == 0) // Reduce the unwanted redraw and cpu performance stable.
+		return;
+	else
+	{
+		cursor_col = preferred_col = 0;
+		state.redraw = true;
+	}
+}
+
+// End key
+void Input::End(int& cursor_line, int& cursor_col, int& preferred_col)
+{
+	auto& buf = g_Buffer.get_buffer();
+	if (cursor_col == buf[cursor_line].size()) // Reduce the unwanted redraw and cpu performance stable
+		return;
+	if (cursor_line >= 0 && cursor_line < buf.size())
+		cursor_col = buf[cursor_line].size();
+	else
+		cursor_col = 0;
+	preferred_col = cursor_col;
+	state.redraw = true;
+}
+
 // Insert new line
 void Input::Insert_New_Line(int& cursor_line, int& cursor_col, int& preferred_col)
 {
@@ -257,6 +284,12 @@ void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& pre
 				case VK_DOWN:
 					Arrow_Down(cursor_line, cursor_col, preferred_col);
 					return;
+				case VK_HOME:
+					Home(cursor_line, cursor_col, preferred_col);
+					return;
+				case VK_END:
+					End(cursor_line, cursor_col, preferred_col);
+					return;
 			}
 			// Special Keys
 			if (vk == VK_RETURN) Insert_New_Line(cursor_line, cursor_col, preferred_col);
@@ -267,26 +300,44 @@ void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& pre
 			else if(ch >= 32 && ch <= 126) Insert_Characters(ch, cursor_line, cursor_col);
 		} 
 		else {
+			contrl_state.controller_row = state.row - 1;
+
 			// AUTO clear error
 			if (contrl_state.Error)
 			{
 				file_controller_.Clear_Buffer();
+				contrl_state.controller_col = 1;
 				contrl_state.Error = false;
 				file_controller_.Render_Controller();
+				return;
 			}
 
 			// Handle backspace
-			if(vk == VK_BACK && !contrl_state.controller_buffer.empty())
+			if(vk == VK_BACK)
 			{
-				contrl_state.controller_buffer.pop_back();
-				file_controller_.Render_Controller();
+				int idx = contrl_state.controller_col - 2;
+				if (idx >= 0)
+				{
+					contrl_state.controller_buffer.erase(idx, 1);
+					contrl_state.controller_col--;
+					file_controller_.Render_Controller();
+				}
+				return;
 			}
 			
 			// Handle Printable chars
 			if(ch >= 32 && ch <= 126)
 			{
-				contrl_state.controller_buffer.push_back(ch);
-				file_controller_.Render_Controller();
+				int idx = contrl_state.controller_col - 1;
+				if (idx >= 0 && idx <= contrl_state.controller_buffer.size())
+				{
+					contrl_state.controller_buffer.insert(
+						contrl_state.controller_buffer.begin() + idx,
+						ch
+					);
+					contrl_state.controller_col++;
+					file_controller_.Render_Controller();
+				}
 			}
 
 			// Execute command on Enter
@@ -294,6 +345,64 @@ void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& pre
 			{
 				file_controller_.Execute_Command();
 				return;
+			}
+
+			// VK_RIGHT
+			if (vk == VK_RIGHT)
+			{
+				int max_col = 1 + contrl_state.controller_buffer.size();
+
+				if (contrl_state.controller_col < max_col)
+				{
+					contrl_state.controller_col++;
+					terminal.move_cursor(
+						g_Terminal_Context.hStdOut,
+						contrl_state.controller_row,
+						contrl_state.controller_col
+					);
+				}
+				return;
+			}
+
+			// VK_LEFT
+			if (vk == VK_LEFT)
+			{
+				contrl_state.controller_row = state.row -1;
+				if (contrl_state.controller_col > 1) {
+					contrl_state.controller_col--;
+					terminal.move_cursor(
+						g_Terminal_Context.hStdOut,
+						contrl_state.controller_row,
+						contrl_state.controller_col
+					);
+				}
+				return;
+			}
+
+			// Home key
+			if(vk == VK_HOME)
+			{
+				// Reduce the unwanted Render Controller and cpu performance stable.
+				if (contrl_state.controller_col == 1)
+					return;
+				else
+				{
+					contrl_state.controller_col = 1;
+					file_controller_.Render_Controller();
+				}
+			}
+
+			// End
+			if(vk == VK_END)
+			{
+				// Reduce the unwanted Render Controller and cpu performance stable.
+				if(contrl_state.controller_col == (1 + contrl_state.controller_buffer.size()))
+					return;
+				else
+				{
+					contrl_state.controller_col = 1 + contrl_state.controller_buffer.size();
+					file_controller_.Render_Controller();
+				}
 			}
 			return;	
 		}

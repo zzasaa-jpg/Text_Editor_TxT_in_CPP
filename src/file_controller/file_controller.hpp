@@ -13,6 +13,8 @@ struct File_Controller_state {
 	bool discard_save = false;
 	bool Error = false; // Incorrect or wrong cmd or values message to user
 	std::string controller_buffer;
+	int controller_row;
+	int controller_col;
 };
 
 extern File_Controller_state contrl_state;

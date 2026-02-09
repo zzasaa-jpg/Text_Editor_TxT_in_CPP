@@ -17,6 +17,8 @@ class Input{
 		void Insert_Characters(char ch, int& cursor_line, int& cursor_col);
 		void Insert_New_Line(int& cursor_line, int& cursor_col, int& preferred_col);
 		void Insert_Tab(int& cursor_line, int& cursor_col, int& preferred_col);
+		void Home(int& cursor_line, int&cursor_col, int& preferred_col);
+		void End(int& cursor_line, int&cursor_col, int& preferred_col);
 		void Arrow_Up(int& cursor_line, int& cursor_col, int& preferred_col);
 		void Arrow_Down(int& cursor_line, int& cursor_col, int& preferred_col);
 		void Arrow_Left(int& cursor_line, int& cursor_col, int& preferred_col);
