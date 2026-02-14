@@ -10,6 +10,7 @@
 #include "../terminal/terminal.hpp"
 #include "../core/editor.hpp"
 #include "../file_controller/file_controller.hpp"
+#include "../render/render_.hpp"
 
 #include <windows.h>
 #include <algorithm>
@@ -39,7 +40,8 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 		cursor_col--;
 		preferred_col = cursor_col;
 		contrl_state.modified = true;
-		state.redraw = true;
+		dirty_flag.markDirty(cursor_line);
+		//state.redraw = true;
 	}
 	// case2: merge with previous line
 	else if (cursor_line > 0)
@@ -54,7 +56,9 @@ void Input::BackSpace_Key(int& cursor_line, int& cursor_col, int& preferred_col)
 		cursor_col = prev_len;
 		preferred_col = cursor_col;
 		contrl_state.modified = true;
-		state.redraw = true;
+		dirty_flag.resize(buf.size());
+		dirty_flag.markRangeDirty(cursor_line, buf.size() - 1);
+		//state.redraw = true;
 	}
 }
 
@@ -170,7 +174,7 @@ void Input::Arrow_Right(int& cursor_line, int& cursor_col, int& preferred_col)
 	else if(cursor_line + 1 < buf.size()){
 		cursor_line++;
 		cursor_col = 0;
-	} else
+} else
 	{
 		state.redraw = false;
 		return;
@@ -222,7 +226,9 @@ void Input::Insert_New_Line(int& cursor_line, int& cursor_col, int& preferred_co
 	cursor_line++;
 	cursor_col = preferred_col = 0;
 	contrl_state.modified = true;
-	state.redraw = true;
+	dirty_flag.resize(buf.size());
+	dirty_flag.markRangeDirty(cursor_line - 1, buf.size() - 1);
+	//state.redraw = true;
 }
 
 // Insert characters
@@ -232,7 +238,8 @@ void Input::Insert_Characters(char ch, int& cursor_line, int& cursor_col)
 	buf[cursor_line].insert(cursor_col, 1, ch);
 	cursor_col++;
 	contrl_state.modified = true;
-	state.redraw = true;
+	dirty_flag.markDirty(cursor_line);
+	//state.redraw = true;
 }
 
 // Tab
@@ -245,7 +252,7 @@ void Input::Insert_Tab(int& cursor_line, int& cursor_col, int& preferred_col)
 	}
 	preferred_col = cursor_col;
 	contrl_state.modified = true;
-	state.redraw = true;
+	dirty_flag.markDirty(cursor_line);
 }
 
 void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& preferred_col)
@@ -308,7 +315,7 @@ void Input::range_of_input_functions(int& cursor_line, int& cursor_col, int& pre
 				file_controller_.Clear_Buffer();
 				contrl_state.controller_col = 1;
 				contrl_state.Error = false;
-				file_controller_.Render_Controller();
+				contrl_controller_dirty= true;
 				return;
 			}
 

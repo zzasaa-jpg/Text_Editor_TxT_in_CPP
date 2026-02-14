@@ -18,6 +18,7 @@ struct File_Controller_state {
 };
 
 extern File_Controller_state contrl_state;
+extern bool contrl_controller_dirty;
 
 class File_Controller{
 	public:

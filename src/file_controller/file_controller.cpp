@@ -8,11 +8,14 @@
 
 File_Controller_state contrl_state;
 File_Controller file_controller_;
+bool contrl_controller_dirty = false;
 File_Controller::File_Controller() {};
 
 void File_Controller::Clear_Buffer()
 {
 	contrl_state.controller_buffer.clear();
+	contrl_state.controller_col = 1;
+	contrl_controller_dirty = true;
 }
 
 void File_Controller::Execute_Command()
@@ -31,6 +34,7 @@ void File_Controller::range_of_mes(std::string mes, WORD color_set)
 	file_controller_.Render_Controller();
 	SetConsoleTextAttribute(g_Terminal_Context.hStdOut, state.originalColor);
 	contrl_state.Error = true;
+	contrl_controller_dirty = true;
 }
 
 void File_Controller::Parse_Command()
@@ -130,5 +134,5 @@ void File_Controller::Render_Controller()
 	);
 
 	std::cout.flush();
-	state.redraw = false;
+	contrl_controller_dirty = false;
 }

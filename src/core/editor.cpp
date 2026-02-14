@@ -6,6 +6,7 @@
 #include "../input/input_Key_.hpp"
 #include "../file_controller/file_controller.hpp"
 #include "../file_engine/file_engine.hpp"
+#include "../render/render_.hpp"
 
 EditorState state{};
 Editor editor;
@@ -51,6 +52,8 @@ void Editor_boot(){
 	);
 
 	terminal.move_cursor(g_Terminal_Context.hStdOut, 0, 2);
+
+	dirty_flag.initialize(g_Buffer.get_buffer().size());
 
 	// Editor core loop --------------------------------------------
 	state.editor_core_running = true;
@@ -99,14 +102,55 @@ void Editor_boot(){
 			/* If redraw is true then, 'render_layout.ReDraw()' and 
 			 * 'file_controller_.Render_Controller()' both functions execute.
 			 * uses if condition based on 'contrl_state.controller_' then UX is breaking.*/
-			file_controller_.Render_Controller();
 			render_layout.ReDraw(
 				state.row, state.col,
 				state.cursor_line, state.cursor_col,
 				state.scroll_offset, state.h_scroll,
 				state.originalColor
 			);
+			if (contrl_state.controller_)
+			{
+				file_controller_.Render_Controller();
+				terminal.move_cursor(
+					g_Terminal_Context.hStdOut,
+					state.row - 1,
+					1 + contrl_state.controller_buffer.size()
+				);
+			}
+		} else
+		{
+
+			render_layout.Render_Dirty_Lines(
+				g_Buffer.get_buffer(),
+				state.row, state.col,
+				state.scroll_offset, state.h_scroll,
+				state.originalColor
+			);
 		}
+			render_layout.Render_Status_Only(
+				state.row, state.col,
+				state.cursor_line, state.cursor_col,
+				state.scroll_offset, state.h_scroll,
+				g_Buffer.get_buffer(),
+				state.originalColor
+			);
+
+			if (contrl_state.controller_ || contrl_state.Error || contrl_controller_dirty)
+			{
+				file_controller_.Render_Controller();
+			}
+			else
+			{
+				int screen_row = state.cursor_line - state.scroll_offset;
+				int screen_col = state.cursor_col - state.h_scroll + 2;
+
+				terminal.move_cursor(
+					g_Terminal_Context.hStdOut,
+					screen_row,
+					screen_col
+				);
+			}
+
 		// ---------------------------------------------------------
 	}
 	// Editor core loop end ----------------------------------------
